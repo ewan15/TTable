@@ -34,6 +34,12 @@ template <auto c, auto t> struct Table
     static constexpr auto tail = t;
 };
 
+template <StringLiteral n, typename T> struct Row
+{
+    static constexpr auto name = n;
+    static T vec;
+};
+
 template <auto col> auto createTable()
 {
     return Table<col, nullptr>();
@@ -50,7 +56,18 @@ template <auto table, StringLiteral name> auto getColumnByName()
     if constexpr (table.col.name.len == name.len && std::string_view(table.col.name.value) == name.value)
         return table.col;
     else
-        return getColumnByName<table.col, name>();
+        return getColumnByName<table.tail, name>();
+}
+
+template <auto table, typename T, typename... Ts>
+void push_back(T&& row, Ts&&... rows) {
+    table.col.vec.push_back(row);
+}
+
+template <auto table, typename T, typename T2, typename... Ts>
+void push_back(T&& row, T2&& row2, Ts&&... rows) {
+    table.col.vec.push_back(row);
+    push_back<table.tail>(row2, rows...);
 }
 } // namespace TTable
 
