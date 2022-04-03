@@ -25,49 +25,49 @@ template <std::size_t N> struct StringLiteral
 template <StringLiteral n, typename T> struct column
 {
     static constexpr auto name = n;
-    static std::vector<T> vec;
+    std::vector<T> vec;
 };
 
-template <auto c, auto t> struct Table
+template <typename Col, typename Tail> struct Table
 {
-    static constexpr auto col = c;
-    static constexpr auto tail = t;
+    Col col;
+    Tail t;
+};
+struct None
+{
 };
 
-template <StringLiteral n, typename T> struct Row
+template <typename Col> auto createTable()
 {
-    static constexpr auto name = n;
-    static T vec;
-};
-
-template <auto col> auto createTable()
-{
-    return Table<col, nullptr>();
+    return Table<Col, None>();
 }
 
-template <auto col, auto col2, auto... cols> auto createTable()
+template <typename Col, typename Col2, typename... Cols> auto createTable()
 {
-    auto tail = createTable<col2, cols...>();
-    return Table<col, tail>();
+    using tail = typeof(createTable<Col2, Cols...>());
+    return Table<Col, tail>();
 }
 
-template <auto table, StringLiteral name> auto getColumnByName()
+template <StringLiteral name, typename Table> auto getColumnByName(Table table)
 {
-    if constexpr (table.col.name.len == name.len && std::string_view(table.col.name.value) == name.value)
+    static_assert(!std::is_same<typeof(table), None>(), "cannot find column");
+
+    if constexpr (std::string_view(table.col.name.value) == name.value)
         return table.col;
     else
-        return getColumnByName<table.tail, name>();
+        return getColumnByName<name>(table.t);
 }
 
-template <auto table, typename T, typename... Ts>
-void push_back(T&& row, Ts&&... rows) {
+template <typename T, typename... Ts> void push_back(auto table, T &&row, Ts &&...rows)
+{
     table.col.vec.push_back(row);
+    static_assert(std::is_same<typeof(table.t), None>(), "missing elements to insert");
 }
 
-template <auto table, typename T, typename T2, typename... Ts>
-void push_back(T&& row, T2&& row2, Ts&&... rows) {
+template <typename T, typename T2, typename... Ts> void push_back(auto table, T &&row, T2 &&row2, Ts &&...rows)
+{
     table.col.vec.push_back(row);
-    push_back<table.tail>(row2, rows...);
+    push_back(table.t, row2, rows...);
 }
 } // namespace TTable
 
