@@ -6,6 +6,7 @@ add_executable(
 )
 target_link_libraries(
         TTableTest
+        TTable
         gtest_main
 )
 

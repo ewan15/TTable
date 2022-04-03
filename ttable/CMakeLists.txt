@@ -5,6 +5,7 @@ set (HEADER_LIST
 add_library(
         TTable
         lib/ttable.cpp
+        ${HEADER_LIST}
 )
 
-include_directories(include)
+target_include_directories(TTable INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
