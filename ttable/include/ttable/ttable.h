@@ -11,7 +11,8 @@
 
 namespace TTable
 {
-template <std::size_t N> struct StringLiteral
+template <std::size_t N>
+struct StringLiteral
 {
     constexpr StringLiteral(const char (&str)[N])
     {
@@ -22,7 +23,8 @@ template <std::size_t N> struct StringLiteral
     std::size_t len = N;
 };
 
-template <StringLiteral n, typename T> struct Column
+template <StringLiteral n, typename T>
+struct Column
 {
     static constexpr auto name = n;
     std::vector<T> vec;
@@ -43,7 +45,8 @@ Column<name, T1> add_two_columns(Column<col1Name, T1> const &col1, Column<col2Na
     return newCol;
 }
 
-template <typename Col, typename Tail> struct Table
+template <typename Col, typename Tail>
+struct Table
 {
     Col col;
     Tail t;
@@ -52,7 +55,8 @@ struct None
 {
 };
 
-template <typename Col, typename Tail> std::ostream &operator<<(std::ostream &os, Table<Col, Tail> const &m)
+template <typename Col, typename Tail>
+std::ostream &operator<<(std::ostream &os, Table<Col, Tail> const &m)
 {
     return os << "|" << m.col.name.value;
 }
@@ -62,18 +66,21 @@ std::ostream &operator<<(std::ostream &os, None const &m)
     return os << "|";
 }
 
-template <typename Col> auto create_table()
+template <typename Col>
+auto create_table()
 {
     return Table<Col, None>();
 }
 
-template <typename Col, typename Col2, typename... Cols> auto create_table()
+template <typename Col, typename Col2, typename... Cols>
+auto create_table()
 {
     using tail = typeof(create_table<Col2, Cols...>());
     return Table<Col, tail>();
 }
 
-template <StringLiteral name> auto get_column_by_name(auto table)
+template <StringLiteral name>
+auto get_column_by_name(auto table)
 {
     static_assert(!std::is_same<typeof(table), None>(), "cannot find column");
 
@@ -83,25 +90,29 @@ template <StringLiteral name> auto get_column_by_name(auto table)
         return get_column_by_name<name>(table.t);
 }
 
-template <typename T, typename... Ts> void push_back(auto &table, T &&row, Ts &&...rows)
+template <typename T, typename... Ts>
+void push_back(auto &table, T &&row, Ts &&...rows)
 {
     table.col.vec.push_back(row);
     static_assert(std::is_same<typeof(table.t), None>(), "missing elements to insert");
 }
 
-template <typename T, typename T2, typename... Ts> void push_back(auto &table, T &&row, T2 &&row2, Ts &&...rows)
+template <typename T, typename T2, typename... Ts>
+void push_back(auto &table, T &&row, T2 &&row2, Ts &&...rows)
 {
     table.col.vec.push_back(row);
     push_back(table.t, row2, rows...);
 }
 
-template <StringLiteral n, typename T> struct RowElement
+template <StringLiteral n, typename T>
+struct RowElement
 {
     static constexpr auto name = n;
     T val;
 };
 
-template <typename Col, typename Tail> struct Row
+template <typename Col, typename Tail>
+struct Row
 {
     Col col;
     Tail t;
@@ -129,7 +140,8 @@ auto get_row(auto table, std::size_t index)
     return get_row_typed(table, index);
 }
 
-template <StringLiteral name> auto get_col_from_row(auto row)
+template <StringLiteral name>
+auto get_col_from_row(auto row)
 {
     if constexpr (std::string_view(row.col.name.value) == name.value)
         return row.col.val;
@@ -150,7 +162,8 @@ void move_column(auto source, auto target)
     }
 }
 
-template <typename col> auto add_column(auto table)
+template <typename col>
+auto add_column(auto table)
 {
     using NewTableType = Table<col, typeof table>;
     auto newTable = NewTableType{};
@@ -160,9 +173,22 @@ template <typename col> auto add_column(auto table)
     return newTable;
 }
 
-// TODO
-auto drop_column()
+template <StringLiteral name>
+auto drop_column(auto table)
 {
+    if constexpr (std::is_same<typeof table, None>())
+    {
+        static_assert(true, "unable to find column name");
+    }
+    else if constexpr (std::string_view(table.col.name.value) == name.value)
+    {
+        return table.t;
+    }
+    else
+    {
+        const auto col = drop_column<name>(table.t);
+        return Table<typeof table.col, typeof col>{.col = table.col, .t = col};
+    }
 }
 } // namespace TTable
 

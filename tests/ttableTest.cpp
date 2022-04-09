@@ -92,6 +92,22 @@ TEST(TTable, new_table_from_existing)
     TTable::push_back(table, 5);
     using AgeCol = TTable::Column<"age", int>;
     auto newTable = TTable::add_column<AgeCol>(table);
+
     ASSERT_EQ(newTable.t.col.vec[0], 5);
     ASSERT_EQ(newTable.col.vec[0], 0);
+}
+
+TEST(TTable, drop_column)
+{
+    using IdCol = TTable::Column<"id", int>;
+    using AgeCol = TTable::Column<"age", int>;
+    auto table = TTable::create_table<IdCol, AgeCol>();
+    TTable::push_back(table, 5, 6);
+
+    auto newTable = TTable::drop_column<"age">(table);
+
+    const auto idCol = TTable::get_column_by_name<"id">(newTable);
+    //    This line should fail
+    //    TTable::get_column_by_name<"age">(newTable);
+    ASSERT_EQ(idCol.vec[0], 5);
 }
