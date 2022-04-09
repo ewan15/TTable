@@ -26,7 +26,7 @@ template <StringLiteral n, typename T> struct column
 {
     static constexpr auto name = n;
     std::vector<T> vec;
-    T t;
+    using Type = T;
 };
 
 template <typename Col, typename Tail> struct Table
@@ -94,8 +94,9 @@ auto get_row_typed(auto table, std::size_t index)
     else
     {
         auto tail = get_row_typed(table.t, index);
-        using T = typeof(table.col.t);
-        auto rowElement = RowElement<table.col.name, T>{.val = table.col.vec.at(index)};
+        using T = typeof(table.col);
+        using Type = typename T::Type;
+        auto rowElement = RowElement<table.col.name, Type>{.val = table.col.vec.at(index)};
         return Row<typeof(rowElement), typeof(tail)>{.col = rowElement, .t = tail};
     }
 }
@@ -103,6 +104,13 @@ auto get_row_typed(auto table, std::size_t index)
 auto get_row(auto table, std::size_t index)
 {
     return get_row_typed(table, index);
+}
+template <StringLiteral name> auto get_col_from_row(auto row)
+{
+    if constexpr (std::string_view(row.col.name.value) == name.value)
+        return row.col.val;
+    else
+        return get_col_from_row<name>(row.t);
 }
 } // namespace TTable
 

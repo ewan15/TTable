@@ -59,3 +59,19 @@ TEST(TTable, get_row)
 
     auto row = TTable::get_row(table, 0);
 }
+
+TEST(TTable, get_col_from_row)
+{
+    using col = TTable::column<"id", int>;
+    using col2 = TTable::column<"name", std::string>;
+    auto table = TTable::create_table<col, col2>();
+
+    TTable::push_back(table, 5, "test");
+
+    auto row = TTable::get_row(table, 0);
+    auto name = TTable::get_col_from_row<"name">(row);
+    auto id = TTable::get_col_from_row<"id">(row);
+
+    ASSERT_EQ(name, "test");
+    ASSERT_EQ(id, 5);
+}
