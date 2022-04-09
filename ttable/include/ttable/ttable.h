@@ -49,7 +49,7 @@ template <typename Col, typename Col2, typename... Cols> auto create_table()
     return Table<Col, tail>();
 }
 
-//TODO: Make reference?
+// TODO: Make reference?
 template <StringLiteral name> auto get_column_by_name(auto table)
 {
     static_assert(!std::is_same<typeof(table), None>(), "cannot find column");
@@ -60,20 +60,20 @@ template <StringLiteral name> auto get_column_by_name(auto table)
         return get_column_by_name<name>(table.t);
 }
 
-template <typename T, typename... Ts> void push_back(auto& table, T &&row, Ts &&...rows)
+template <typename T, typename... Ts> void push_back(auto &table, T &&row, Ts &&...rows)
 {
     table.col.vec.push_back(row);
     static_assert(std::is_same<typeof(table.t), None>(), "missing elements to insert");
 }
 
-template <typename T, typename T2, typename... Ts> void push_back(auto& table, T &&row, T2 &&row2, Ts &&...rows)
+template <typename T, typename T2, typename... Ts> void push_back(auto &table, T &&row, T2 &&row2, Ts &&...rows)
 {
     table.col.vec.push_back(row);
     push_back(table.t, row2, rows...);
 }
 
-template <StringLiteral n, typename T>
-struct RowElement {
+template <StringLiteral n, typename T> struct RowElement
+{
     static constexpr auto name = n;
     T val;
 };
@@ -84,12 +84,24 @@ template <typename Col, typename Tail> struct Row
     Tail t;
 };
 
-auto get_row_typed(auto table, std::size_t index) {
-    using T = typeof(table.col.t);
-    auto rowElement = RowElement<table.col.name, T>{.val = table.col.vec.at(index)};
+auto get_row_typed(auto table, std::size_t index)
+{
+    if constexpr (std::is_same<typeof(table), None>())
+    {
+        return None{};
+    }
+
+    else
+    {
+        auto tail = get_row_typed(table.t, index);
+        using T = typeof(table.col.t);
+        auto rowElement = RowElement<table.col.name, T>{.val = table.col.vec.at(index)};
+        return Row<typeof(rowElement), typeof(tail)>{.col = rowElement, .t = tail};
+    }
 }
 
-auto get_row(auto table, std::size_t index) {
+auto get_row(auto table, std::size_t index)
+{
     return get_row_typed(table, index);
 }
 } // namespace TTable
