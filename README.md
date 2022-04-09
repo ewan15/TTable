@@ -25,3 +25,7 @@ auto id = TTable::get_col_from_row<"id">(row);
 auto name = TTable::get_col_from_row<"name">(row);
 std::cout << "id: " << id << " name: " << name << std::endl;
 ```
+
+### Note
+
+More examples in tests.
