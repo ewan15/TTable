@@ -7,21 +7,21 @@
 
 TEST(TTable, initCol)
 {
-    using col = TTable::column<"id", int>;
+    using col = TTable::Column<"id", int>;
     ASSERT_TRUE(std::string_view("id") == col::name.value);
 }
 
 TEST(TTable, initTable)
 {
-    using col = TTable::column<"id", int>;
+    using col = TTable::Column<"id", int>;
     auto table = TTable::create_table<col>();
     ASSERT_TRUE(std::string_view("id") == table.col.name.value);
 }
 
 TEST(TTable, mulitColumnInitTable)
 {
-    using col = TTable::column<"id", int>;
-    using col2 = TTable::column<"name", std::string>;
+    using col = TTable::Column<"id", int>;
+    using col2 = TTable::Column<"name", std::string>;
     auto table = TTable::create_table<col, col2>();
     ASSERT_TRUE(std::string_view("id") == table.col.name.value);
     ASSERT_TRUE(std::string_view("name") == table.t.col.name.value);
@@ -29,8 +29,8 @@ TEST(TTable, mulitColumnInitTable)
 
 TEST(TTable, getColumnByName)
 {
-    using col = TTable::column<"id", int>;
-    using col2 = TTable::column<"name", std::string>;
+    using col = TTable::Column<"id", int>;
+    using col2 = TTable::Column<"name", std::string>;
     auto table = TTable::create_table<col, col2>();
 
     auto tempCol = TTable::get_column_by_name<"id">(table);
@@ -42,8 +42,8 @@ TEST(TTable, getColumnByName)
 
 TEST(TTable, push_back)
 {
-    using col = TTable::column<"id", int>;
-    using col2 = TTable::column<"name", std::string>;
+    using col = TTable::Column<"id", int>;
+    using col2 = TTable::Column<"name", std::string>;
     auto table = TTable::create_table<col, col2>();
 
     TTable::push_back(table, 5, "test");
@@ -51,8 +51,8 @@ TEST(TTable, push_back)
 
 TEST(TTable, get_row)
 {
-    using col = TTable::column<"id", int>;
-    using col2 = TTable::column<"name", std::string>;
+    using col = TTable::Column<"id", int>;
+    using col2 = TTable::Column<"name", std::string>;
     auto table = TTable::create_table<col, col2>();
 
     TTable::push_back(table, 5, "test");
@@ -62,8 +62,8 @@ TEST(TTable, get_row)
 
 TEST(TTable, get_col_from_row)
 {
-    using col = TTable::column<"id", int>;
-    using col2 = TTable::column<"name", std::string>;
+    using col = TTable::Column<"id", int>;
+    using col2 = TTable::Column<"name", std::string>;
     auto table = TTable::create_table<col, col2>();
 
     TTable::push_back(table, 5, "test");
@@ -74,4 +74,13 @@ TEST(TTable, get_col_from_row)
 
     ASSERT_EQ(name, "test");
     ASSERT_EQ(id, 5);
+}
+
+TEST(TTable, adding_two_columns)
+{
+    using IdCol = TTable::Column<"id", int>;
+    using AgeCol = TTable::Column<"age", int>;
+    auto idCol = IdCol {};
+    auto ageCol = AgeCol {};
+    auto newCol = TTable::add_two_columns<"new_col">(idCol, ageCol);
 }

@@ -22,12 +22,25 @@ template <std::size_t N> struct StringLiteral
     std::size_t len = N;
 };
 
-template <StringLiteral n, typename T> struct column
+template <StringLiteral n, typename T> struct Column
 {
     static constexpr auto name = n;
     std::vector<T> vec;
     using Type = T;
 };
+
+template<StringLiteral name, typename T1, typename T2, StringLiteral col1Name, StringLiteral col2Name>
+Column<name, T1> add_two_columns (Column<col1Name, T1> const& col1, Column<col2Name, T2> const& col2) {
+    static_assert(std::is_same<T1,T2>(), "incompatible types");
+    using NewCol = TTable::Column<name, T1>;
+    auto newCol = NewCol {
+        .vec = std::vector<T1>(col1.vec.size())
+    };
+    for (auto i = 0; i < col1.size()-1; i++) {
+        newCol[i] = col1.vec[i] + col2.vec[i];
+    }
+    return newCol;
+}
 
 template <typename Col, typename Tail> struct Table
 {
@@ -37,6 +50,16 @@ template <typename Col, typename Tail> struct Table
 struct None
 {
 };
+
+
+template <typename Col, typename Tail>
+std::ostream &operator<<(std::ostream &os, Table<Col, Tail> const &m) {
+    return os << "|" << m.col.name.value;
+}
+
+std::ostream &operator<<(std::ostream &os, None const &m) {
+    return os << "|";
+}
 
 template <typename Col> auto create_table()
 {
@@ -111,6 +134,14 @@ template <StringLiteral name> auto get_col_from_row(auto row)
         return row.col.val;
     else
         return get_col_from_row<name>(row.t);
+}
+// TODO
+auto add_column(auto table) {
+
+}
+// TODO
+auto drop_column() {
+
 }
 } // namespace TTable
 
