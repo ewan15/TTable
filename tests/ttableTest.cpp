@@ -80,7 +80,18 @@ TEST(TTable, adding_two_columns)
 {
     using IdCol = TTable::Column<"id", int>;
     using AgeCol = TTable::Column<"age", int>;
-    auto idCol = IdCol {};
-    auto ageCol = AgeCol {};
+    auto idCol = IdCol{};
+    auto ageCol = AgeCol{};
     auto newCol = TTable::add_two_columns<"new_col">(idCol, ageCol);
+}
+
+TEST(TTable, new_table_from_existing)
+{
+    using IdCol = TTable::Column<"id", int>;
+    auto table = TTable::create_table<IdCol>();
+    TTable::push_back(table, 5);
+    using AgeCol = TTable::Column<"age", int>;
+    auto newTable = TTable::add_column<AgeCol>(table);
+    ASSERT_EQ(newTable.t.col.vec[0], 5);
+    ASSERT_EQ(newTable.col.vec[0], 0);
 }

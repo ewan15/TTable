@@ -29,15 +29,16 @@ template <StringLiteral n, typename T> struct Column
     using Type = T;
 };
 
-template<StringLiteral name, typename T1, typename T2, StringLiteral col1Name, StringLiteral col2Name>
-Column<name, T1> add_two_columns (Column<col1Name, T1> const& col1, Column<col2Name, T2> const& col2) {
-    static_assert(std::is_same<T1,T2>(), "incompatible types");
+template <StringLiteral name, typename T1, typename T2, StringLiteral col1Name, StringLiteral col2Name>
+Column<name, T1> add_two_columns(Column<col1Name, T1> const &col1, Column<col2Name, T2> const &col2)
+{
+    static_assert(std::is_same<T1, T2>(), "incompatible types");
     using NewCol = TTable::Column<name, T1>;
-    auto newCol = NewCol {
-        .vec = std::vector<T1>(col1.vec.size())
-    };
-    for (auto i = 0; i < col1.size()-1; i++) {
-        newCol[i] = col1.vec[i] + col2.vec[i];
+    auto newCol = NewCol{.vec = std::vector<T1>(col1.vec.size())};
+    // TODO: Convert to SIMD
+    for (auto i = 0; i < col1.vec.size() - 1; i++)
+    {
+        newCol.vec[i] = col1.vec[i] + col2.vec[i];
     }
     return newCol;
 }
@@ -51,13 +52,13 @@ struct None
 {
 };
 
-
-template <typename Col, typename Tail>
-std::ostream &operator<<(std::ostream &os, Table<Col, Tail> const &m) {
+template <typename Col, typename Tail> std::ostream &operator<<(std::ostream &os, Table<Col, Tail> const &m)
+{
     return os << "|" << m.col.name.value;
 }
 
-std::ostream &operator<<(std::ostream &os, None const &m) {
+std::ostream &operator<<(std::ostream &os, None const &m)
+{
     return os << "|";
 }
 
@@ -72,7 +73,6 @@ template <typename Col, typename Col2, typename... Cols> auto create_table()
     return Table<Col, tail>();
 }
 
-// TODO: Make reference?
 template <StringLiteral name> auto get_column_by_name(auto table)
 {
     static_assert(!std::is_same<typeof(table), None>(), "cannot find column");
@@ -128,6 +128,7 @@ auto get_row(auto table, std::size_t index)
 {
     return get_row_typed(table, index);
 }
+
 template <StringLiteral name> auto get_col_from_row(auto row)
 {
     if constexpr (std::string_view(row.col.name.value) == name.value)
@@ -135,13 +136,33 @@ template <StringLiteral name> auto get_col_from_row(auto row)
     else
         return get_col_from_row<name>(row.t);
 }
-// TODO
-auto add_column(auto table) {
 
+void move_column(auto source, auto target)
+{
+    if constexpr (std::is_same<typeof source, None>() || std::is_same<typeof target, None>())
+    {
+        return;
+    }
+    else
+    {
+        target.col.vec = source.col.vec;
+        move_column(source.t, target.t);
+    }
 }
-// TODO
-auto drop_column() {
 
+template <typename col> auto add_column(auto table)
+{
+    using NewTableType = Table<col, typeof table>;
+    auto newTable = NewTableType{};
+    newTable.col = col{};
+    newTable.col.vec.resize(table.col.vec.size());
+    move_column(table.t, newTable);
+    return newTable;
+}
+
+// TODO
+auto drop_column()
+{
 }
 } // namespace TTable
 
