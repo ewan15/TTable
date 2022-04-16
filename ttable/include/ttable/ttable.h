@@ -7,10 +7,16 @@
 
 // Example type: TTable::TTable<"id", int, "name", string>()
 #include <algorithm>
+#include <boost/align/aligned_allocator.hpp>
 #include <cstdlib>
+
+#include <ttable/simd.h>
 
 namespace TTable
 {
+template <typename T>
+using Vector = std::vector<T>;
+
 template <std::size_t N>
 struct StringLiteral
 {
@@ -27,7 +33,7 @@ template <StringLiteral n, typename T>
 struct Column
 {
     static constexpr auto name = n;
-    std::vector<T> vec;
+    Vector<T> vec;
     using Type = T;
 };
 
@@ -36,12 +42,9 @@ Column<name, T1> add_two_columns(Column<col1Name, T1> const &col1, Column<col2Na
 {
     static_assert(std::is_same<T1, T2>(), "incompatible types");
     using NewCol = TTable::Column<name, T1>;
-    auto newCol = NewCol{.vec = std::vector<T1>(col1.vec.size())};
-    // TODO: Convert to SIMD
-    for (auto i = 0; i < col1.vec.size() - 1; i++)
-    {
-        newCol.vec[i] = col1.vec[i] + col2.vec[i];
-    }
+    const auto size = col1.vec.size();
+    auto newCol = NewCol{.vec = Vector<T1>(size)};
+    TTable::SIMD::add(newCol.vec.data(), col1.vec.data(), col2.vec.data(), size);
     return newCol;
 }
 
@@ -149,7 +152,7 @@ auto get_col_from_row(auto row)
         return get_col_from_row<name>(row.t);
 }
 
-void move_column(auto source, auto target)
+void move_column(auto &source, auto &target)
 {
     if constexpr (std::is_same<typeof source, None>() || std::is_same<typeof target, None>())
     {
@@ -169,7 +172,7 @@ auto add_column(auto table)
     auto newTable = NewTableType{};
     newTable.col = col{};
     newTable.col.vec.resize(table.col.vec.size());
-    move_column(table.t, newTable);
+    move_column(table, newTable.t);
     return newTable;
 }
 

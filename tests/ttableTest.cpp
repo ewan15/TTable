@@ -80,9 +80,12 @@ TEST(TTable, adding_two_columns)
 {
     using IdCol = TTable::Column<"id", int>;
     using AgeCol = TTable::Column<"age", int>;
-    auto idCol = IdCol{};
-    auto ageCol = AgeCol{};
+    // Inserting 12 values
+    auto idCol = IdCol{.vec = {5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6}};
+    auto ageCol = AgeCol{.vec = {4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7}};
     auto newCol = TTable::add_two_columns<"new_col">(idCol, ageCol);
+    const auto correctValues = TTable::Vector<int>{9, 7, 5, 3, 1, 1, 3, 5, 7, 9, 11, 13};
+    ASSERT_TRUE(newCol.vec == correctValues);
 }
 
 TEST(TTable, new_table_from_existing)
@@ -110,4 +113,18 @@ TEST(TTable, drop_column)
     //    This line should fail
     //    TTable::get_column_by_name<"age">(newTable);
     ASSERT_EQ(idCol.vec[0], 5);
+}
+
+TEST(TTable, vector_data_alignment)
+{
+    using IdCol = TTable::Column<"id", int>;
+    using AgeCol = TTable::Column<"age", int>;
+    // Inserting 12 values
+    auto idCol = IdCol{.vec = {5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6}};
+    auto ageCol = AgeCol{.vec = {4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7}};
+    auto alignment = (uintptr_t)idCol.vec.data() % 512;
+    std::cout << "alignment: " << alignment << std::endl;
+    auto newCol = TTable::add_two_columns<"new_col">(idCol, ageCol);
+    const auto correctValues = TTable::Vector<int>{9, 7, 5, 3, 1, 1, 3, 5, 7, 9, 11, 13};
+    ASSERT_TRUE(newCol.vec == correctValues);
 }

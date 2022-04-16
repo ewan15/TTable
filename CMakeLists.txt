@@ -14,6 +14,19 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+find_package(Boost 1.76.0)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+
+#add_executable(progname file1.cxx file2.cxx)
+if(Boost_FOUND)
+else()
+    MESSAGE(FATAL_ERROR "cannot find boost")
+endif()
+
 add_subdirectory(ttable)
 add_subdirectory(tests)
 add_subdirectory(external)

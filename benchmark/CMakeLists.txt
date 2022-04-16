@@ -1,3 +1,5 @@
 add_executable(ttable_benchmark benchmark.cpp)
-target_link_libraries(ttable_benchmark benchmark)
-target_link_libraries(ttable_benchmark TTable)
+target_link_libraries(ttable_benchmark
+        TTable
+        benchmark
+)
