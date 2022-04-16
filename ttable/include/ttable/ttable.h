@@ -58,12 +58,12 @@ struct None
 template <typename Col, typename Tail>
 std::ostream &operator<<(std::ostream &os, Table<Col, Tail> const &m)
 {
-    return os << "|" << m.col.name.value;
+    return os << std::string_view("|") << std::string_view(m.col.name.value);
 }
 
 std::ostream &operator<<(std::ostream &os, None const &m)
 {
-    return os << "|";
+    return os << std::string_view("|");
 }
 
 template <typename Col>

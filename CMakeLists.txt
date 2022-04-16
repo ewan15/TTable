@@ -16,3 +16,5 @@ FetchContent_MakeAvailable(googletest)
 
 add_subdirectory(ttable)
 add_subdirectory(tests)
+add_subdirectory(external)
+add_subdirectory(benchmark)
