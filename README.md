@@ -24,10 +24,10 @@ all inserts and columns. If a column is added midway through the code the column
 
 ### Create a table schema
 ```c++
-# Create all column types
+// Create all column types
 using id_col = TTable::column<"id", int>;
 using name_col = TTable::column<"name", std::string>;
-# Create table with columns
+// Create table with columns
 auto table = TTable::create_table<id_col, name_col>();
 ```
 
