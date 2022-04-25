@@ -1,6 +1,25 @@
 # TTable
 100% Compile time typed dataframe like tables.
 
+## What is this?
+When accesing columns in a table-like structure we have two options. Create
+a generic `unordered_map<vector<T>>` approach or a struct of type listed below.
+```c++
+struct Table {
+  std::vector<int> id;
+  std::vector<std::string> name;
+}
+```
+Both are problematic.
+
+The first introduces the problem of attempting to get a column which doesn't
+exist resulting in undefined behaviour.
+The second introduces the problem of cluttering the namespace with many tables
+of different types.
+
+TTable attempts to allow users to create tables on the fly and typing checking
+all inserts and columns. If a column is added midway through the code the column will only exist there and will be unaccessable before.
+
 ## How to use
 
 ### Create a table schema
