@@ -45,6 +45,17 @@ auto name = TTable::get_col_from_row<"name">(row);
 std::cout << "id: " << id << " name: " << name << std::endl;
 ```
 
+### Insert new column
+
+```c++
+using IdCol = TTable::Column<"id", int>;
+auto table = TTable::create_table<IdCol>();
+// Currently, unable to access age column
+using AgeCol = TTable::Column<"age", int>;
+auto newTable = TTable::add_column<AgeCol>(table);
+// Now age column has been added to the type
+```
+
 ## Importing with CMake
 ```commandline
 git clone git@github.com:ewan15/TTable.git
