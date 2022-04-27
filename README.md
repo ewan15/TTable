@@ -45,6 +45,18 @@ auto name = TTable::get_col_from_row<"name">(row);
 std::cout << "id: " << id << " name: " << name << std::endl;
 ```
 
+## Importing with CMake
+```commandline
+git clone git@github.com:ewan15/TTable.git
+```
+```cmake
+add_subdirectory(TTable)
+target_link_libraries(
+        <Your Project>
+        TTable
+)
+```
+
 ### Note
 
 More examples in tests.
