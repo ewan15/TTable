@@ -35,8 +35,8 @@ struct Column
     using Type = T;
 };
 
-template <StringLiteral name, typename T1, typename T2, StringLiteral col1Name, StringLiteral col2Name>
-Column<name, T1> transform_two_columns(Column<col1Name, T1> const &col1, Column<col2Name, T2> const &col2, auto& operation)
+template <StringLiteral name, typename T1, typename T2, StringLiteral col1Name, StringLiteral col2Name, auto operation>
+Column<name, T1> transform_two_columns(Column<col1Name, T1> const &col1, Column<col2Name, T2> const &col2)
 {
     static_assert(std::is_same<T1, T2>(), "incompatible types");
     using NewCol = TTable::Column<name, T1>;
@@ -53,14 +53,14 @@ template <StringLiteral name, typename T1, typename T2, StringLiteral col1Name, 
 Column<name, T1> add_two_columns(Column<col1Name, T1> const &col1, Column<col2Name, T2> const &col2)
 {
     const auto operation = [](T1 a, T2 b){return a+b;};
-    return transform_two_columns<name, T1, T2, col1Name, col2Name>(col1, col2, operation);
+    return transform_two_columns<name, T1, T2, col1Name, col2Name, operation>(col1, col2);
 }
 
 template <StringLiteral name, typename T1, typename T2, StringLiteral col1Name, StringLiteral col2Name>
 Column<name, T1> minus_two_columns(Column<col1Name, T1> const &col1, Column<col2Name, T2> const &col2)
 {
     const auto operation = [](T1 a, T2 b){return a-b;};
-    return transform_two_columns<name, T1, T2, col1Name, col2Name>(col1, col2, operation);
+    return transform_two_columns<name, T1, T2, col1Name, col2Name, operation>(col1, col2);
 }
 
 
