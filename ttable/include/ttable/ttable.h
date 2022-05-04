@@ -14,8 +14,6 @@
 
 namespace TTable
 {
-template <typename T>
-using Vector = std::vector<T>;
 
 template <std::size_t N>
 struct StringLiteral
@@ -33,20 +31,38 @@ template <StringLiteral n, typename T>
 struct Column
 {
     static constexpr auto name = n;
-    Vector<T> vec;
+    std::vector<T> vec;
     using Type = T;
 };
 
 template <StringLiteral name, typename T1, typename T2, StringLiteral col1Name, StringLiteral col2Name>
-Column<name, T1> add_two_columns(Column<col1Name, T1> const &col1, Column<col2Name, T2> const &col2)
+Column<name, T1> transform_two_columns(Column<col1Name, T1> const &col1, Column<col2Name, T2> const &col2, auto& operation)
 {
     static_assert(std::is_same<T1, T2>(), "incompatible types");
     using NewCol = TTable::Column<name, T1>;
     const auto size = col1.vec.size();
-    auto newCol = NewCol{.vec = Vector<T1>(size)};
-    TTable::SIMD::add(newCol.vec.data(), col1.vec.data(), col2.vec.data(), size);
+    auto newCol = NewCol{.vec = std::vector<T1>(size)};
+    for (std::size_t i = 0; i < size; ++i)
+    {
+        newCol.vec[i] = operation(col1.vec[i], col2.vec[i]);
+    }
     return newCol;
 }
+
+template <StringLiteral name, typename T1, typename T2, StringLiteral col1Name, StringLiteral col2Name>
+Column<name, T1> add_two_columns(Column<col1Name, T1> const &col1, Column<col2Name, T2> const &col2)
+{
+    const auto operation = [](T1 a, T2 b){return a+b;};
+    return transform_two_columns<name, T1, T2, col1Name, col2Name>(col1, col2, operation);
+}
+
+template <StringLiteral name, typename T1, typename T2, StringLiteral col1Name, StringLiteral col2Name>
+Column<name, T1> minus_two_columns(Column<col1Name, T1> const &col1, Column<col2Name, T2> const &col2)
+{
+    const auto operation = [](T1 a, T2 b){return a-b;};
+    return transform_two_columns<name, T1, T2, col1Name, col2Name>(col1, col2, operation);
+}
+
 
 template <typename Col, typename Tail>
 struct Table
